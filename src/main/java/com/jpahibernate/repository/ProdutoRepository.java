@@ -39,7 +39,8 @@ public class ProdutoRepository {
 		CriteriaBuilder cBuilder = manager.getCriteriaBuilder();
 		CriteriaQuery<Produto> cQuery = cBuilder.createQuery(Produto.class); // select
 		Root<Produto> rootProduto = cQuery.from(Produto.class); // from
-
+		rootProduto.fetch("grupo");
+		
 		gerarFiltro(cBuilder, cQuery, rootProduto, filtro);
 
 		cQuery.orderBy(cBuilder.asc(rootProduto.get("quantidade")));
@@ -47,15 +48,19 @@ public class ProdutoRepository {
 		TypedQuery<Produto> tQuery = manager.createQuery(cQuery);
 
 		if (filtro != null) {
+			if (!StringUtils.isEmpty(filtro.getDescricao())) {
+				tQuery.setParameter("descricao", "%" + filtro.getDescricao().toUpperCase() + "%");
+			}
+			
 			if (!StringUtils.isEmpty(filtro.getStatus())) {
 				tQuery.setParameter("status", filtro.getStatus());
 			}
 
-			if (filtro.getQtdeMinima().compareTo(BigDecimal.ZERO) >= 0) {
+			if (filtro.getQtdeMinima() != null) {
 				tQuery.setParameter("quantidadeMinima", filtro.getQtdeMinima());
 			}
 
-			if (filtro.getQtdeMaxima().compareTo(BigDecimal.ZERO) >= 0) {
+			if (filtro.getQtdeMaxima() != null) {
 				tQuery.setParameter("quantidadeMaxima", filtro.getQtdeMaxima());
 			}
 		}
@@ -70,18 +75,23 @@ public class ProdutoRepository {
 		List<Predicate> predicates = new ArrayList<>();
 
 		if (filtro != null) {
+			if (!StringUtils.isEmpty(filtro.getDescricao())) {
+				ParameterExpression<String> descricao = cBuilder.parameter(String.class, "descricao");
+				predicates.add(cBuilder.like(rootProduto.get("descricao"), descricao));
+			}
+			
 			if (!StringUtils.isEmpty(filtro.getStatus())) {
 				ParameterExpression<String> status = cBuilder.parameter(String.class, "status");
 				predicates.add(cBuilder.equal(rootProduto.get("status"), status));
 			}
 
-			if (filtro.getQtdeMinima().compareTo(BigDecimal.ZERO) >= 0) {
+			if (filtro.getQtdeMinima() != null) {
 				ParameterExpression<BigDecimal> quantidadeMinima = cBuilder.parameter(BigDecimal.class,
 						"quantidadeMinima");
 				predicates.add(cBuilder.ge(rootProduto.get("quantidade"), quantidadeMinima));
 			}
 
-			if (filtro.getQtdeMaxima().compareTo(BigDecimal.ZERO) >= 0) {
+			if (filtro.getQtdeMaxima() != null) {
 				ParameterExpression<BigDecimal> quantidadeMaxima = cBuilder.parameter(BigDecimal.class,
 						"quantidadeMaxima");
 				predicates.add(cBuilder.le(rootProduto.get("quantidade"), quantidadeMaxima));

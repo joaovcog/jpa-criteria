@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -26,6 +28,10 @@ public class Produto implements Serializable {
 	private BigDecimal quantidade;
 
 	private String status;
+	
+	@ManyToOne
+	@JoinColumn(name = "cod_grupo")
+	private Grupo grupo;
 
 	public Integer getCodigo() {
 		return codigo;
@@ -93,7 +99,9 @@ public class Produto implements Serializable {
 			}
 		}
 		
-		return codigoString + "| " + descricao + " | " + quantidade + " | " + status;
+		String descGrupo = grupo != null ? grupo.getCodigo() + " - " + grupo.getDescricao() : "";
+		
+		return codigoString + "| " + descricao + " | " + quantidade + " | " + status + " | " + descGrupo;
 	}
 	
 }
